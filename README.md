@@ -1,4 +1,4 @@
-Esri Geoportal Server LiveDVD Demo 2013
+Esri Geoportal Server LiveDVD Demo 2015
 =================
 
 This repository contains the all the files and instructions necessary to recreate the Esri Geoportal Server LiveDVD Demo 2013. Visit esri.com/geoportaldemo to request a free copy of the compiled LiveDVD.
