@@ -1,41 +1,34 @@
-#!/bin/bash -e
-#
-# This script is executed at the end of appliance creation.  Here you can do
-# one-time actions to modify your appliance before it is ever used, like
-# removing files and directories to make it smaller, creating symlinks,
-# generating indexes, etc.
-#
-# The 'kiwi_type' variable will contain the format of the appliance
-# (oem = disk image, vmx = VMware, iso = CD/DVD, xen = Xen).
-#
-
-# read in some variables
-. /studio/profile
-
-# read in KIWI utility functions
-. /.kconfig
-
 # Tomcat Autostart on Boot
-chkconfig --level 2345 tomcat on
+chkconfig -a tomcat
 
 # Desktop Icons
-mkdir /home/geoportal/Desktop
-cp -r /usr/local/Desktop /home/geoportal/
+mkdir /home/geoportal/Desktop/
+cp -r /usr/local/Desktop/ /home/geoportal/
 rm -r /usr/local/Desktop
 
-# Desktop Wallpaper Setup
+# Desktop Setup
+mkdir -p /etc/skel/.kde4/
+cp -r /usr/local/share /etc/skel/.kde4/
+cp -r /usr/local/share /etc/kde4/
+rm -r /usr/local/share
+rm /usr/share/wallpapers/Elarun/contents/screenshot.png
+cp /usr/local/screenshot.png /usr/share/wallpapers/Elarun/contents/screenshot.png
+rm /usr/share/wallpapers/Elarun/contents/images/2560x1600.png
+mv /usr/local/2560x1600.png /usr/share/wallpapers/Elarun/contents/images/2560x1600.png
+cp -r /usr/share/wallpapers/openSUSEdefault /usr/share/wallpapers/Elarun
 rm /usr/share/wallpapers/stripes.png
 rm /usr/share/wallpapers/stripes.png.desktop
-cp /usr/local/2560x1600.png /usr/share/wallpapers/Elarun/contents/images/2560x1600.png
-cp /usr/local/2560x1600.png /usr/share/wallpapers/Elarun/contents/screenshot.png
-rm /usr/local/2560x1600.png
+rm -r /usr/share/kde4/apps/ksplash/Themes/Default
+mv /usr/share/kde4/apps/ksplash/Themes/ksplashx-suse /usr/share/kde4/apps/ksplash/Themes/Default
 
-# KSplash Background
-cp /usr/local/600x400.png /usr/share/kde4/apps/ksplash/Themes/Default/600x400/background.png
-cp /usr/local/800x600.png /usr/share/kde4/apps/ksplash/Themes/Default/800x600/background.png
-cp /usr/local/1024x768.png /usr/share/kde4/apps/ksplash/Themes/Default/1024x768/background.png
-cp /usr/local/1280x1024.png /usr/share/kde4/apps/ksplash/Themes/Default/1280x1024/background.png
-cp /usr/local/1600x1200.png /usr/share/kde4/apps/ksplash/Themes/Default/1600x1200/background.png
-cp /usr/local/1920x1080.png /usr/share/kde4/apps/ksplash/Themes/Default/1920x1080/background.png
-cp /usr/local/1920x1200.png /usr/share/kde4/apps/ksplash/Themes/Default/1920x1200/background.png
-rm /usr/share/kde4/apps/ksplash/Themes/Default/Preview.png
+# MySQL Autostart on Boot, Import, and Setup
+chkconfig -a mysql
+rcmysql start
+mysqladmin -u root password 'geoportal'
+mysql --verbose --host=localhost --port=3306 --user=root --password=geoportal < /usr/local/localhost.sql
+mysql --verbose --host=localhost --port=3306 --user=root --password=geoportal --execute="CREATE USER 'geoportal'@'localhost' IDENTIFIED BY 'geoportal'"
+mysql --verbose --host=localhost --port=3306 --user=root --password=geoportal --execute="CREATE USER 'geoportal'@'geoportal' IDENTIFIED BY 'geoportal'"
+mysql --verbose --host=localhost --port=3306 --user=root --password=geoportal --execute="GRANT ALL ON geoportal.* TO 'geoportal'@'localhost'"
+mysql --verbose --host=localhost --port=3306 --user=root --password=geoportal --execute="GRANT ALL ON geoportal.* TO 'geoportal'@'geoportal'"
+rcmysql stop
+rm /usr/local/localhost.sql
